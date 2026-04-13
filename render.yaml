@@ -1,26 +1,27 @@
 services:
   - type: web
-    name: funding-regime-bot
+    name: funding-telegram-bot
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    autoDeploy: false
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.11
-      - key: POLL_SECONDS
-        value: 300
-      - key: SYMBOLS
-        value: BTC,ETH,SOL
-      - key: DB_PATH
-        value: /tmp/funding_signals.db
-      - key: LOG_LEVEL
-        value: INFO
-      - key: HL_INFO_URL
-        value: https://api.hyperliquid.xyz/info
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
+      - key: SYMBOLS
+        value: BTC,ETH,SOL
+      - key: POLL_SECONDS
+        value: "300"
+      - key: LOOKBACK_POINTS
+        value: "90"
+      - key: DB_PATH
+        value: /tmp/funding_signals.db
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ALERT_ON_CROWDING
+        value: "false"
+      - key: DROP_PENDING_UPDATES
+        value: "true"

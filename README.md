@@ -1,50 +1,69 @@
-# Funding Regime Bot - Render Test Deploy
+# Funding Telegram Signal Bot
 
-This package is set up for the fastest Render test deploy.
+A Render-ready Telegram bot that turns the funding-rate research into **Telegram alerts**.
 
 ## What it does
-- Runs a FastAPI web service
-- Starts a background worker on boot
-- Polls Hyperliquid funding data every `POLL_SECONDS`
-- Computes a simple funding regime signal
-- Stores recent rows in SQLite at `/tmp/funding_signals.db`
-- Exposes:
-  - `/health`
+- Polls Hyperliquid funding data for your symbols
+- Uses a regime model based on funding **z-score** and **percentile**
+- Sends Telegram alerts when it finds:
+  - `long_watch` = extreme negative funding
+  - `short_watch` = extreme positive funding
+- Supports Telegram commands:
+  - `/start`
+  - `/help`
   - `/latest`
-  - `/`
+  - `/signals`
+  - `/status`
+- Exposes `/health` and `/latest` for Render health checks and debugging
 
-## Important test limitation
-This is for a short Render test only. On Render free web services, the service spins down after 15 minutes with no incoming traffic.
+## Research logic built in
+This bot does **not** treat funding as a direct next-candle predictor. It uses it as a **crowding / contrarian regime signal**:
+- Extreme negative funding → contrarian long watch
+- Extreme positive funding → crowded-long caution / short watch
+- Mild crowding → optional crowding alerts
+- Neutral funding → no trade
 
-Also, `/tmp` is ephemeral, so the SQLite database will not survive restarts or redeploys.
+## Files
+- `main.py` - bot + polling loop + API
+- `requirements.txt` - Python dependencies
+- `render.yaml` - Render blueprint
 
-## Fastest deploy path
-1. Unzip this folder.
-2. Create a GitHub repo.
-3. Push these files to the repo root.
-4. In Render, choose **New +** -> **Blueprint**.
-5. Connect the GitHub repo.
-6. Render will detect `render.yaml`.
-7. Add secret env vars if you want Telegram alerts:
+## Render deploy
+1. Push this folder to a GitHub repo.
+2. In Render, click **New +** → **Blueprint**.
+3. Select the repo.
+4. Add these secret env vars:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-8. Deploy.
+5. Deploy.
 
-## After deploy
-Open:
-- `/health` to confirm the worker started
-- `/latest` to inspect the most recent rows
+## Required env vars
+- `TELEGRAM_BOT_TOKEN` - from BotFather
+- `TELEGRAM_CHAT_ID` - your Telegram chat ID
 
-## Manual deploy instead of Blueprint
-If you do not want to use `render.yaml`, create a **Web Service** and use:
-- Build command: `pip install -r requirements.txt`
-- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- Health check path: `/health`
-
-## Suggested first test settings
+## Optional env vars
 - `SYMBOLS=BTC,ETH,SOL`
 - `POLL_SECONDS=300`
+- `LOOKBACK_POINTS=90`
+- `ALERT_ON_CROWDING=false`
+- `DROP_PENDING_UPDATES=true`
+- `DB_PATH=/tmp/funding_signals.db`
 
-## Notes
-- Because this is a free web service, it is not the right choice for continuous production monitoring.
-- For one-day testing, it is the easiest option.
+## Telegram usage
+After deploy, open your bot in Telegram and send:
+- `/start`
+- `/latest`
+- `/status`
+
+The bot will also push alerts automatically to the `TELEGRAM_CHAT_ID` chat.
+
+## Important Render note
+The free web-service filesystem is ephemeral. SQLite data in `/tmp` can be lost on restart/redeploy, which is okay for a short test.
+
+## Quick local run
+```bash
+pip install -r requirements.txt
+export TELEGRAM_BOT_TOKEN=your_token
+export TELEGRAM_CHAT_ID=your_chat_id
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
