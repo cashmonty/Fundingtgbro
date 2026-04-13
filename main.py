@@ -402,8 +402,8 @@ def format_alert(row: dict) -> str:
         f"Mark: <b>{row['mark_px']:.4f}</b>\n"
         f"Predicted funding: <b>{pct(row['predicted_funding'])}</b>\n"
         f"Current funding: <b>{pct(row['current_funding'])}</b>\n"
-        f"Z-score: <b>{'n/a' if row['zscore'] is None else f'{row['zscore']:.2f}'}</b>\n"
-        f"Percentile: <b>{'n/a' if row['percentile'] is None else f'{row['percentile'] * 100:.1f}%'} </b>\n"
+        f"Z-score: <b>{'n/a' if row['zscore'] is None else format(row['zscore'], '.2f')}</b>\n"
+        f"Percentile: <b>{'n/a' if row['percentile'] is None else format(row['percentile'] * 100, '.1f') + '%'} </b>\n"
         f"OI: <b>{row['open_interest']:.2f}</b>\n"
         f"Regime: <b>{row['regime']}</b>"
     )
@@ -418,7 +418,7 @@ def format_latest(rows: List[dict]) -> str:
         lines.append(
             f"\n<b>{row['symbol']}</b> | {row['signal']}"
             f"\nPred: {pct(row['predicted_funding'])} | Cur: {pct(row['current_funding'])}"
-            f"\nZ: {'n/a' if row['zscore'] is None else f'{row['zscore']:.2f}'} | Pctile: {'n/a' if row['percentile'] is None else f'{row['percentile'] * 100:.1f}%'}"
+            f"\nZ: {'n/a' if row['zscore'] is None else format(row['zscore'], '.2f')} | Pctile: {'n/a' if row['percentile'] is None else format(row['percentile'] * 100, '.1f') + '%'}"
             f"\nMark: {row['mark_px']:.4f} | Regime: {row['regime']}"
         )
     return "\n".join(lines)
